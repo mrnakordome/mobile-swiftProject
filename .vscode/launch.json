@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:mobile-swiftProject}",
+            "name": "Debug mobile-swiftProject",
+            "program": "${workspaceFolder:mobile-swiftProject}/.build/debug/mobile-swiftProject",
+            "preLaunchTask": "swift: Build Debug mobile-swiftProject"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:mobile-swiftProject}",
+            "name": "Release mobile-swiftProject",
+            "program": "${workspaceFolder:mobile-swiftProject}/.build/release/mobile-swiftProject",
+            "preLaunchTask": "swift: Build Release mobile-swiftProject"
+        }
+    ]
+}

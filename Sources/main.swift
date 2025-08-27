@@ -29,7 +29,7 @@ var secretBool = [Int](repeating: 0, count: 4)
 var guess = [Int](repeating: 0, count: 4)
 var guessBool = [Int](repeating: 0, count: 4)
 
-print("start")
+print("Welcom to Mastemind")
 var secret = (0..<4).map { _ in Int.random(in: 1...6) }
 var secretNumber = 0
 for i in 0..<4{
@@ -37,19 +37,20 @@ for i in 0..<4{
     secretNumber *= 10 
 }
 secretNumber /= 10
-print(secret)
-
+//print(secret)
+print("Guess 4 digits between 1 to 6")
+print("You can exit the game using end")
 var attempts = 0
 outer: while true{
     guard let input = readLine() else { break }
     switch parseInput(input) {
     case .end:
-        print("ending")
-        print("your total attemps where: \(attempts)")
-        print("secret number was : \(secretNumber)")
+        print("You Lose!")
+        print("Total attemps: \(attempts)")
+        print("secret code was: \(secretNumber)")
         break outer
     case .number(let n):
-        print("number: \(n)")
+        //print("number: \(n)")
         var temp = n
         attempts += 1
         var black = 0
@@ -60,8 +61,8 @@ outer: while true{
             secretBool[i] = 0
             guessBool[i] = 0
         }
-        print(guess)
-        print(secret)
+        //print(guess)
+        //print(secret)
         for i in 0..<4{
             if secret[i] == guess[i]{
                 black+=1
@@ -70,9 +71,9 @@ outer: while true{
             }
         }
         if(black == 4){
-            print("You WIN")
-            print("total attemtps: \(attempts)")
-            print("secret code was: \(secretNumber)")
+            print("You WIN!")
+            print("Total attemtps: \(attempts)")
+            print("Secret code was: \(secretNumber)")
             break outer
         }
         for i in 0..<4{
@@ -84,10 +85,10 @@ outer: while true{
                 }
             }
         }
-        print(secretBool)
-        print(guessBool)
-        print(black)
-        print(white)
+        //print(secretBool)
+        //print(guessBool)
+        //print(black)
+        //print(white)
         var output = ""
         for _ in 1...4{
             if(black != 0){
@@ -103,6 +104,6 @@ outer: while true{
         }
         print(output)
     case .badInput:
-        print("bad input")
+        print("Wrong instruction or bad number")
     }
 }

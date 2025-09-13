@@ -1,13 +1,14 @@
+// Mastermind CLI using remote API
+// Swift 5.7+ (async/await)
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
 
+// ---------- Models ----------
 struct CreateGameResponse: Decodable { let game_id: String }
 struct GuessRequest: Encodable { let game_id: String; let guess: String }
 struct GuessResponse: Decodable { let black: Int; let white: Int }
 struct ErrorResponse: Decodable { let error: String }
 
+// ---------- API Client ----------
 enum APIError: Error, CustomStringConvertible {
     case http(Int)
     case decoding
@@ -73,11 +74,11 @@ final class GameAPI {
     func deleteGame(gameId: String) async {
         var req = URLRequest(url: base.appendingPathComponent("/game/\(gameId)"))
         req.httpMethod = "DELETE"
-        _ = try? await session.data(for: req)
+        _ = try? await session.data(for: req) // best-effort; ignore errors
     }
 }
 
-
+// ---------- Input Parsing ----------
 enum InputResult { case end, number(String), badInput }
 
 func parseInput(_ s: String) -> InputResult {
@@ -88,56 +89,55 @@ func parseInput(_ s: String) -> InputResult {
     return .badInput
 }
 
-func printBW(_ r: GuessResponse) {
-    let b = String(repeating: "B", count: r.black)
-    let w = String(repeating: "W", count: r.white)
-    print(b + w)
-}
+// ---------- CLI ----------
+@main
+struct Main {
+    static func printBW(_ r: GuessResponse) {
+        let b = String(repeating: "B", count: r.black)
+        let w = String(repeating: "W", count: r.white)
+        print(b + w)
+    }
 
-func runLoop(gameId: String, api: GameAPI) async {
-    print("Welcome to Mastermind")
-    print("Guess 4 digits between 1 to 6")
-    print("You can exit the game using command end")
+    static func runLoop(gameId: String, api: GameAPI) async {
+        print("Welcome to Mastermind (remote API mode)")
+        print("Guess 4 digits between 1..6 (type 'end' to quit)")
 
-    var attempts = 0
-    while let line = readLine() {
-        switch parseInput(line.trimmingCharacters(in: .whitespacesAndNewlines)) {
-        case .end:
-            print("Loseeeeeeeer!")
-            print("Attempts: \(attempts)")
-            await api.deleteGame(gameId: gameId)
-            return
-        case .badInput:
-            print("Invalid input. Enter exactly 4 digits from 1 to 6 or end.")
-        case .number(let guess):
-            attempts += 1
-            do {
-                let res = try await api.makeGuess(gameId: gameId, guess: guess)
-                if res.black == 4 {
-                    print("BBBB")
-                    print("You win!")
-                    print("Total attempts: \(attempts)")
-                    await api.deleteGame(gameId: gameId)
-                    return
-                } else {
-                    printBW(res)
+        var attempts = 0
+        while let line = readLine() {
+            switch parseInput(line.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            case .end:
+                print("Bye! Attempts: \(attempts)")
+                await api.deleteGame(gameId: gameId)
+                return
+            case .badInput:
+                print("Invalid input. Enter exactly 4 digits from 1..6 or 'end'.")
+            case .number(let guess):
+                attempts += 1
+                do {
+                    let res = try await api.makeGuess(gameId: gameId, guess: guess)
+                    if res.black == 4 {
+                        print("BBBB")
+                        print("You WIN! Total attempts: \(attempts)")
+                        await api.deleteGame(gameId: gameId)
+                        return
+                    } else {
+                        printBW(res)
+                    }
+                } catch {
+                    print("Error: \(error)")
                 }
-            } catch {
-                print("Error: \(error)")
             }
         }
+        await api.deleteGame(gameId: gameId)
     }
-    await api.deleteGame(gameId: gameId)
-}
 
-
-let api = GameAPI()
-Task {
-    do {
-        let gameId = try await api.createGame()
-        await runLoop(gameId: gameId, api: api)
-    } catch {
-        print("Failed to start game: \(error)")
+    static func main() async {
+        let api = GameAPI()
+        do {
+            let gameId = try await api.createGame()
+            await runLoop(gameId: gameId, api: api)
+        } catch {
+            print("Failed to start game: \(error)")
+        }
     }
 }
-dispatchMain()
